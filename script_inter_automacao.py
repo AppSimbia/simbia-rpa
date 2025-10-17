@@ -58,7 +58,7 @@ try:
         cur1.executemany(insert_query, plan_temp)
         conn.commit()
 
-        # Executa a procedure par atualizar a tabela de UpdatePlan com os dados da temporária 
+        # Executa a procedure para atualizar a tabela de UpdatePlan com os dados da temporária 
         print("Executando SP_UpdatePlan()")
         cur1.execute("CALL SP_UpdatePlan()")
         conn.commit()
@@ -93,7 +93,7 @@ try:
         cur1.executemany(insert_query, industryType_temp_corrected)
         conn.commit()
 
-        # Executa Stored Procedure para atualizar tabela final
+        # Executa Produdere para atualizar tabela final
         print("Executando SP_UpdateIndustryType()")
         cur1.execute("CALL SP_UpdateIndustryType()")
         conn.commit()
@@ -126,7 +126,7 @@ try:
         cur1.executemany(insert_query, benefit_temp_corrected)
         conn.commit()
 
-        # Executa Stored Procedure
+        # Executa Produdere
         print("Executando SP_UpdateBenefit()")
         cur1.execute("CALL SP_UpdateBenefit()")
         conn.commit()
@@ -135,7 +135,7 @@ try:
         print(f"Erro na migração Benefit_temp: {e}")
         conn.rollback()
 
-    # --- Migração de ProductCategory_temp (Categorias de produto) ---
+    # --- Migração de ProductCategory_temp ---
     try:
         print("Migrando ProductCategory_temp")
         cur2.execute("select idcategoriaproduto, cnmcategoria, cdescricao from categoriaproduto")
@@ -157,7 +157,7 @@ try:
         cur1.executemany(insert_query, productCategory_temp)
         conn.commit()
 
-        # Executa Stored Procedure
+        # Executa Produdere
         print("Executando SP_UpdateProductCategory()")
         cur1.execute("CALL SP_UpdateProductCategory()")
         conn.commit()
