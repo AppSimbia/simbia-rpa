@@ -1,3 +1,18 @@
+"""
+Este script realiza o sincronismo automático entre o banco de origem (1º ano) e o banco de destino (2º ano) do projeto SIMBIA. 
+Seu objetivo é manter os dados atualizados e consistentes entre ambos os ambientes,
+por meio da extração, carga em tabelas utilizadas como temporárias e execução de procedures de atualização.
+
+Tabelas sincronizadas (Banco Origem → Banco Destino):
+- Planos → Plan_temp (idPlan, nPrice, cActive, cPlanName)
+- Tipo de Indústria → IndustryType_temp (idIndustryType, cIndustryTypeName, cInfo)
+- Vantagens → Benefit_temp (idBenefit, cBenefitName, cDescription)
+- Categoria de Produto → ProductCategory_temp (idProductCategory, cCategoryName, cInfo)
+- Permissões → Permission_temp (idPermission, cPermissionName, cDescription)
+
+Para mais detalhes, consultar o README do projeto.
+"""
+
 import psycopg2
 from dotenv import load_dotenv
 from os import getenv
@@ -17,7 +32,7 @@ try:
         host=getenv("DB1_HOST"),
         port=getenv("DB1_PORT")
     )
-    cur1 = conn.cursor()  # Cursor para executar comandos no DB1
+    cur1 = conn.cursor() 
 
     # --- Conexão com o banco de origem ---
     conn2 = psycopg2.connect(
@@ -27,14 +42,13 @@ try:
         host=getenv("DB2_HOST"),
         port=getenv("DB2_PORT")
     )
-    cur2 = conn2.cursor()  # Cursor para executar comandos no DB2
+    cur2 = conn2.cursor() 
 
-    # Garante que não haja transações pendentes
-    conn2.rollback()
+    conn2.rollback() 
     conn.rollback()
     print("Conexão com o banco feita com sucesso!")
 
-    # --- Migração de Plan_temp (Tabela de planos) ---
+    #Migração de Plan_temp (Tabela de planos) 
     try:
         print("Migrando Plan_temp")
         # Seleciona dados do banco de origem
@@ -58,7 +72,7 @@ try:
         cur1.executemany(insert_query, plan_temp)
         conn.commit()
 
-        # Executa a Stored Procedure para atualizar a tabela final
+        # Executa a Procedure para atualizar a tabela final
         print("Executando SP_UpdatePlan()")
         cur1.execute("CALL SP_UpdatePlan()")
         conn.commit()
@@ -68,7 +82,7 @@ try:
         print(f"Erro na migração Plan_temp: {e}")
         conn.rollback()
 
-    # --- Migração de IndustryType_temp (Tipos de indústria) ---
+    # Migração de IndustryType_temp (Tipos de indústria) 
     try:
         print("Migrando IndustryType_temp")
         cur2.execute("select idtipoindustria, cnmtipoindustria, cdescricao from tipoindustria")
@@ -93,7 +107,7 @@ try:
         cur1.executemany(insert_query, industryType_temp_corrected)
         conn.commit()
 
-        # Executa Stored Procedure para atualizar tabela final
+        # Executa a Procedure para atualizar tabela final
         print("Executando SP_UpdateIndustryType()")
         cur1.execute("CALL SP_UpdateIndustryType()")
         conn.commit()
@@ -102,7 +116,7 @@ try:
         print(f"Erro na migração IndustryType_temp: {e}")
         conn.rollback()
 
-    # --- Migração de Benefit_temp (Vantagens) ---
+    # Migração de Benefit_temp (Vantagens) 
     try:
         print("Migrando Benefit_temp")
         cur2.execute("select idvantagem, cnmvantagem, cdescricao from vantagem")
@@ -135,7 +149,7 @@ try:
         print(f"Erro na migração Benefit_temp: {e}")
         conn.rollback()
 
-    # --- Migração de ProductCategory_temp (Categorias de produto) ---
+    # Migração de ProductCategory_temp (Categorias de produto) 
     try:
         print("Migrando ProductCategory_temp")
         cur2.execute("select idcategoriaproduto, cnmcategoria, cdescricao from categoriaproduto")
@@ -157,7 +171,7 @@ try:
         cur1.executemany(insert_query, productCategory_temp)
         conn.commit()
 
-        # Executa Stored Procedure
+        # Executa a Procedure
         print("Executando SP_UpdateProductCategory()")
         cur1.execute("CALL SP_UpdateProductCategory()")
         conn.commit()
@@ -166,7 +180,6 @@ try:
         print(f"Erro na migração ProductCategory_temp: {e}")
         conn.rollback()
 
-# --- Fechamento das conexões ---
 finally:
     if conn:
         conn.close()  # Fecha conexão com o banco de destino
